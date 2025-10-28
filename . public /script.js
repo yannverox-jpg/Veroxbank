@@ -1,69 +1,71 @@
-// ------------------------------
-// Lyra Banque Panel Script
-// ------------------------------
+// Panel front script: fetch balance, submit withdraw, show history, ping 13min
 
-// Auto-refresh wallet every 13 minutes
-const REFRESH_INTERVAL = 13 * 60 * 1000; // 13 minutes
-
-const balanceSpan = document.getElementById('balance');
+const balanceEl = document.getElementById('balance');
 const withdrawForm = document.getElementById('withdrawForm');
 const withdrawResult = document.getElementById('withdrawResult');
+const historyEl = document.getElementById('history');
 
-// Fetch wallet balance
-async function fetchBalance() {
+async function apiGet(path){
+  const res = await fetch(path, { credentials: 'same-origin' });
+  if (!res.ok) throw new Error('API error: ' + res.status);
+  return res.json();
+}
+
+async function apiPost(path, body){
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    credentials: 'same-origin',
+    body: JSON.stringify(body)
+  });
+  const j = await res.json().catch(()=>({}));
+  if (!res.ok) throw new Error(j.message || 'API post failed');
+  return j;
+}
+
+async function fetchBalance(){
   try {
-    const res = await fetch('/api/balance');
-    if (!res.ok) throw new Error('Failed to fetch balance');
-    const data = await res.json();
-    balanceSpan.innerText = data.balance ?? '0';
+    const j = await apiGet('/api/balance');
+    balanceEl.innerText = (j.balance ?? j) + ' ' + (j.currency || '');
   } catch (err) {
     console.error(err);
-    balanceSpan.innerText = 'Error';
+    balanceEl.innerText = 'Erreur';
   }
 }
 
-// Call immediately and set interval
-fetchBalance();
-setInterval(fetchBalance, REFRESH_INTERVAL);
-
-// Handle withdrawal form submit
-withdrawForm.addEventListener('submit', async function(e) {
-  e.preventDefault();
-  withdrawResult.innerText = '';
-  
-  const amount = document.getElementById('amount').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const operator = document.getElementById('operator').value;
-
-  if (!amount || !phone) {
-    withdrawResult.innerText = 'Amount and phone are required';
-    withdrawResult.className = 'error';
-    return;
-  }
-
-  withdrawResult.innerText = 'Processing...';
-
+async function fetchHistory(){
   try {
-    const res = await fetch(`/api/retrait/${operator}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount, phone })
+    const j = await apiGet('/api/history');
+    historyEl.innerHTML = '';
+    (j || []).forEach(item=>{
+      const li = document.createElement('li');
+      li.innerText = `${item.date || ''} — ${item.operator || ''} — ${item.amount || ''} — ${item.status || ''}`;
+      historyEl.appendChild(li);
     });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      withdrawResult.innerText = data.message || 'Withdrawal failed';
-      withdrawResult.className = 'error';
-    } else {
-      withdrawResult.innerText = '✅ Withdrawal successful';
-      withdrawResult.className = 'success';
-      balanceSpan.innerText = data.balance ?? balanceSpan.innerText;
-    }
-
-  } catch (err) {
-    console.error(err);
-    withdrawResult.innerText = 'Network or server error';
-    withdrawResult.className = 'error';
+  } catch(e){
+    console.warn('history fetch failed', e);
   }
+}
+
+withdrawForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  withdrawResult.innerText = 'Processing...';
+  const amount = document.getElementById('amount').value;
+  const phone = document.getElementById('phone').value;
+  const operator = document.getElementById('operator').value;
+  try {
+    const j = await apiPost(`/api/retrait/${operator}`, { amount, phone });
+    withdrawResult.innerText = 'Succès: ' + (j.message || 'ok');
+    fetchBalance();
+    fetchHistory();
+  } catch (err) {
+    withdrawResult.innerText = 'Erreur: ' + (err.message || err);
+  }
+});
+
+// initial load + ping every 13 minutes
+window.addEventListener('load', ()=>{
+  fetchBalance();
+  fetchHistory();
+  setInterval(()=>{ fetchBalance(); fetchHistory(); }, 13*60*1000);
 });
