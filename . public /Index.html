@@ -1,15 +1,30 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Lyra-Banque - Connexion</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lyra Banque - Login Step 1</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h2>Connexion - Étape 1</h2>
-  <form action="/login" method="POST">
-    <label>Mot de passe :</label>
-    <input type="password" name="password" required>
-    <button type="submit">Valider</button>
+<div class="container">
+  <h1>Lyra Banque</h1>
+  <form id="login1Form">
+    <input type="password" id="password1" placeholder="Enter Password 1" required>
+    <button type="submit">Next</button>
   </form>
+  <p id="error1" class="error"></p>
+</div>
+<script>
+document.getElementById('login1Form').addEventListener('submit', function(e){
+  e.preventDefault();
+  const pw = document.getElementById('password1').value;
+  if(pw === 'Lordverox10'){
+    window.location.href = 'login2.html';
+  } else {
+    document.getElementById('error1').innerText = 'Incorrect password';
+  }
+});
+</script>
 </body>
 </html>
