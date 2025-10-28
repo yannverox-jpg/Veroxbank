@@ -1,30 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Lyra Banque - Panel</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <div class="container">
-  <h1>Wallet Panel</h1>
+  <h2>Lyra Banque — Panel</h2>
+
   <div id="balanceBox">
-    <strong>Wallet Balance:</strong> <span id="balance">Loading...</span>
+    <strong>Solde :</strong> <span id="balance">Chargement...</span>
   </div>
 
-  <h2>Withdraw Funds</h2>
+  <h3>Retrait</h3>
   <form id="withdrawForm">
-    <input type="number" id="amount" placeholder="Amount" required>
-    <input type="text" id="phone" placeholder="Phone Number" required>
+    <input id="amount" type="number" step="1" placeholder="Montant" required />
+    <input id="phone" type="text" placeholder="Numéro (ex: 241...)" required />
     <select id="operator">
-      <option value="74">Airtel Money</option>
-      <option value="62">Moov Money</option>
-      <option value="singpay">Singpay</option>
+      <option value="74">Airtel Money (74)</option>
+      <option value="62">Moov Money (62)</option>
+      <option value="singpay">Singpay (payout)</option>
     </select>
-    <button type="submit">Withdraw</button>
+    <button type="submit">Envoyer retrait</button>
   </form>
-  <p id="withdrawResult" class="success"></p>
+
+  <p id="withdrawResult"></p>
+
+  <h3>Historique</h3>
+  <ul id="history"></ul>
+
+  <form id="logoutForm" method="POST" action="/logout">
+    <button type="submit">Se déconnecter</button>
+  </form>
 </div>
 
 <script src="script.js"></script>
