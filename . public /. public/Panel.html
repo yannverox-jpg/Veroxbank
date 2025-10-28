@@ -1,0 +1,72 @@
+//style="font-family:sans-serif;text-align:center;margin-top:50px">
+    <h1>Lyra Panel</h1>
+    <button onclick="logout()" style="margin-bottom:20px;padding:10px 20px;">Déconnexion</button>
+    <h3>Solde : <span id="balance"></span> EUR</h3>
+    <div style="margin-top:20px">
+      <label>Opérateur :
+        <select id="operator">
+          <option value="airtel">Airtel Money</option>
+          <option value="moov">Moov Money</option>
+        </select>
+      </label>
+    </div>
+    <div style="margin-top:10px">
+      <label>Numéro :
+        <input id="receiver" value="24174175419">
+      </label>
+    </div>
+    <div style="margin-top:10px">
+      <label>Montant :
+        <input id="amount" value="1000">
+      </label>
+    </div>
+    <div style="margin-top:20px">
+      <button onclick="doRetrait()" style="padding:10px 20px;">Envoyer</button>
+    </div>
+    <p id="status" style="margin-top:15px"></p>
+    <h2>Historique</h2>
+    <ul id="history" style="list-style:none;padding:0;text-align:left;width:60%;margin:auto"></ul>
+
+    <script>
+      const historyEl = document.getElementById('history');
+      async function refreshBalance(){
+        const r = await fetch('/api/balance');
+        const data = await r.json();
+        document.getElementById('balance').innerText = data.balance;
+      }
+      async function doRetrait(){
+        const receiver = document.getElementById('receiver').value;
+        const amount = document.getElementById('amount').value;
+        const operator = document.getElementById('operator').value;
+        document.getElementById('status').innerText = '⏳ Traitement...';
+        try {
+          const r = await fetch('/api/retrait',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({amount,receiver,operator})
+          });
+          const data = await r.json();
+          if(data.status==='success'){
+            document.getElementById('status').innerText='✅ '+data.tx;
+            addHistory(amount,receiver,operator,'success',data.tx);
+            refreshBalance();
+          }else{
+            document.getElementById('status').innerText='⚠️ '+data.message;
+            addHistory(amount,receiver,operator,'error',data.message);
+          }
+        }catch(e){
+          document.getElementById('status').innerText='❌ Erreur';
+          addHistory(amount,receiver,operator,'error',e.message);
+        }
+      }
+      function addHistory(amount,receiver,operator,status,tx){
+        const li=document.createElement('li');
+        li.innerText=`${operator.toUpperCase()} - ${amount}€ -> ${receiver} => ${status} ${tx?'| tx:'+tx:''}`;
+        historyEl.prepend(li);
+      }
+      async function logout(){await fetch('/logout',{method:'POST'});window.location.href='/login';}
+      refreshBalance(); setInterval(refreshBalance,13*60*1000);
+    </script>
+  </body>
+</html>
+
