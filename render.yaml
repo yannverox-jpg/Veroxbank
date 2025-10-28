@@ -1,0 +1,20 @@
+
+services:
+  - type: web
+    name: lyra-banque
+    env: node
+    plan: free
+    buildCommand: "npm install"
+    startCommand: "npm start"
+    autoDeploy: true
+    envVars:
+      - key: GATEWAY_BASE
+        value: https://gateway.singpay.ga/v1
+      - key: WALLET_ID
+        value: 68fbef1277c46023214afd6d
+      - key: MERCHANT_MOOV
+        value: 24162601406
+      - key: ENABLE_WITHDRAWAL
+        value: "true"
+      - key: APP_NAME
+        value: Lyra Banque
